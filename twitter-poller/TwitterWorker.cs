@@ -3,23 +3,38 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LinqToTwitter;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace twitter_poller
 {
-    class TwitterWorker : BackgroundService
+    class TwitterWorker : BackgroundService, ITweeterConsumer    
     {
-
-        public TwitterWorker(ILogger<TwitterWorker> logger)
+        public TwitterWorker(IConfiguration config, ILogger<TwitterWorker> logger)
         {
             _logger = logger;
-            _twitterContext = new TwitterContext()
+            _credentials = new InMemoryCredentialStore{
+                ConsumerKey = config["TWITTER_API_KEY"],
+                ConsumerSecret = config["TWITTER_API_SECRET"]
+            };
+        }
+
+        public override async Task StartAsync(CancellationToken cancellationToken)
+        {
+           var auth = new ApplicationOnlyAuthorizer { 
+               CredentialStore = _credentials
+           };
+           await auth.AuthorizeAsync();
+           _twitterContext = new TwitterContext(auth);
         }
 
         public ILogger<TwitterWorker> _logger { get; }
 
+        private InMemoryCredentialStore _credentials;
         private TwitterContext _twitterContext;
+
+        public event EventHandler<string> OnTweetReceived;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -31,19 +46,13 @@ namespace twitter_poller
 
             var stream = _twitterContext.Streaming.Where(str => str.Type == StreamingType.Filter);
             await stream.StartAsync(async strm => {
-                await HandleStREAM(strm);
+                if(OnTweetReceived != null)
+                     OnTweetReceived(this, strm.Content);
                 if(stoppingToken.IsCancellationRequested)
                     strm.CloseStream();
             });
 
-           
-
             _logger.LogDebug($"GracePeriod background task is finished.");
-        }
-
-        private Task HandleStREAM(StreamContent arg)
-        {
-            
-        }
+        }        
     }
 }

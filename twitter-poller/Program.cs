@@ -1,12 +1,20 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace twitter_poller
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var builder = Host.CreateDefaultBuilder(args);
+            builder.ConfigureServices((hostContext, services)=>
+            {
+                services.AddSingleton<ITweeterConsumer, TwitterWorker>();
+                services.AddHostedService<ITweeterConsumer>();
+                services.AddHostedService<RedisTweetPublisher>();
+            });
+            builder.Build().Run();
         }
     }
 }
