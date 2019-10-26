@@ -7,5 +7,5 @@ const port = 3000;
    In "static" folder you can put now html, js, css files.
  */
 app.use('/', express.static('public'));
-
+app.use('/gethuburl', )
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
