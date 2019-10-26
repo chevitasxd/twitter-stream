@@ -7,7 +7,7 @@ using StackExchange.Redis;
 
 namespace backend_stream
 {
-    public class TweetHandler : IHostedService
+    public class TweetHandler : IHostedService, ITweetHandler
     {
         private readonly string _connectionString;
         private readonly string _twitterChannel;        
