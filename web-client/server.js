@@ -6,6 +6,6 @@ const port = 3000;
    Here, for route "/", use "static" folder.
    In "static" folder you can put now html, js, css files.
  */
+app.get('/tweethuburl', (req, res) => res.send(process.env.TWEET_HUB_URL));
 app.use('/', express.static('public'));
-app.use('/gethuburl', )
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

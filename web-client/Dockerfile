@@ -3,8 +3,10 @@ WORKDIR /app
 
 FROM node:alpine AS build
 WORKDIR /src
-COPY . .
+COPY package.json .
 RUN npm install
+COPY . .
+RUN  npm run build-lint
 
 FROM base AS final
 WORKDIR /app
