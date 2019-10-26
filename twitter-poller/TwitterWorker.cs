@@ -9,8 +9,15 @@ using Microsoft.Extensions.Logging;
 
 namespace twitter_poller
 {
-    class TwitterWorker : BackgroundService, ITweeterConsumer    
+    public class TwitterWorker : BackgroundService, ITweeterConsumer    
     {
+
+        private readonly ILogger<TwitterWorker> _logger;
+        private readonly InMemoryCredentialStore _credentials;
+        private TwitterContext _twitterContext;
+
+        public event EventHandler<string> OnTweetReceived;
+
         public TwitterWorker(IConfiguration config, ILogger<TwitterWorker> logger)
         {
             _logger = logger;
@@ -27,14 +34,7 @@ namespace twitter_poller
            };
            await auth.AuthorizeAsync();
            _twitterContext = new TwitterContext(auth);
-        }
-
-        public ILogger<TwitterWorker> _logger { get; }
-
-        private InMemoryCredentialStore _credentials;
-        private TwitterContext _twitterContext;
-
-        public event EventHandler<string> OnTweetReceived;
+        }        
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
