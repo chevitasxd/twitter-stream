@@ -12,6 +12,7 @@ namespace twitter_poller
     {
         private readonly ILogger<LinqToTwitterPoller> _logger;
         private readonly InMemoryCredentialStore _credentials;
+        private readonly string _trackFilter;
 
         public LinqToTwitterPoller(IConfiguration config, ILogger<LinqToTwitterPoller> logger)
         {
@@ -21,13 +22,14 @@ namespace twitter_poller
                 ConsumerKey = config["TWITTER_API_KEY"],
                 ConsumerSecret = config["TWITTER_API_SECRET"]
             };
+            _trackFilter = config["TWITTER_FILTER"];
         }
 
         public async Task Poll(CancellationToken stoppingToken, Action<string> tweetReceivedCallback)
         {
 
-             stoppingToken.Register(() =>
-                _logger.LogDebug($" LinqToTwitterPoller poll task is stopping."));
+            stoppingToken.Register(() =>
+               _logger.LogDebug($" LinqToTwitterPoller poll task is stopping."));
 
             var auth = new ApplicationOnlyAuthorizer
             {
@@ -37,12 +39,12 @@ namespace twitter_poller
             await auth.AuthorizeAsync();
             var twitterContext = new TwitterContext(auth);
 
-            _logger.LogDebug($"LinqToTwitterPoller is starting to poll.");           
+            _logger.LogDebug($"{nameof(LinqToTwitterPoller)} is starting to poll activity matching {_trackFilter}.");
 
-            var stream = twitterContext.Streaming.Where(str => str.Type == StreamingType.Filter);
+            var stream = twitterContext.Streaming.Where(str => str.Type == StreamingType.Filter && str.Track == _trackFilter);
 
             await stream.StartAsync(async strm =>
-            {
+            {                
                 tweetReceivedCallback(strm.Content);
                 if (stoppingToken.IsCancellationRequested)
                     strm.CloseStream();

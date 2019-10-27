@@ -12,6 +12,7 @@ services:
       - REDIS_TWEET_CHANNEL=tweets
       - TWITTER_API_KEY
       - TWITTER_API_SECRET
+      - TWITTER_FILTER
     depends_on: 
       - tweetredis
   backend-stream:
