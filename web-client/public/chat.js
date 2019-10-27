@@ -2,18 +2,18 @@
 
 var http = new XMLHttpRequest();
 http.open("GET", "/tweethuburl");
-http.send();
 
 var tweethuburl = null;
 
 http.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-        tweethuburl = this.responseText;
-        var mylabel = document.getElementById("hola")
-        mylabel.textContent = tweethuburl
+        tweethuburl = this.responseText;        
+        console.log('Connected to hub: ' + tweethuburl);
         connectToHub(tweethuburl);
     }
 }
+
+http.send();
 
 function connectToHub(hubUrl) {
     var connection = new signalR.HubConnectionBuilder().withUrl(hubUrl).build();
@@ -31,5 +31,3 @@ function connectToHub(hubUrl) {
             return console.error(err.toString());
         });
 }
-
-
