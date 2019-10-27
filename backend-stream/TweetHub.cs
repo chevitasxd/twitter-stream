@@ -1,6 +1,7 @@
-using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace backend_stream
 {
@@ -8,17 +9,17 @@ namespace backend_stream
     {
         private readonly IConfiguration _config;
         private readonly ITweetHandler _tweetHandler;
+        private readonly ILogger<TweetHub> _logger;
 
-        public TweetHub(IConfiguration config, ITweetHandler tweetHandler)
-        {
-            _config = config;
-            _tweetHandler = tweetHandler;
-            _tweetHandler.OnTweetEventHandled += DispatchTweetToClients;
+        public TweetHub(ILogger<TweetHub> logger)
+        {            
+            _logger = logger;            
         }
 
-        private void DispatchTweetToClients(object sender, string tweetEvent)
+        public override Task OnConnectedAsync()
         {
-            Clients.All.SendAsync("ReceiveTweet", tweetEvent);
+            _logger.LogDebug("Client Connected");
+            return Task.CompletedTask;
         }
     }
 }

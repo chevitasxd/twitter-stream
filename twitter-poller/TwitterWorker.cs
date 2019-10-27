@@ -1,58 +1,33 @@
-using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LinqToTwitter;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace twitter_poller
 {
-    public class TwitterWorker : BackgroundService, ITweeterConsumer    
+    public class TwitterWorker : BackgroundService
     {
-
+        private readonly ITwitterPoller _poller;
+        private readonly ITweetPublisher _tweetPublisher;
         private readonly ILogger<TwitterWorker> _logger;
-        private readonly InMemoryCredentialStore _credentials;
-        private TwitterContext _twitterContext;
 
-        public event EventHandler<string> OnTweetReceived;
-
-        public TwitterWorker(IConfiguration config, ILogger<TwitterWorker> logger)
+        public TwitterWorker(ITwitterPoller poller, ITweetPublisher tweetPublisher ,ILogger<TwitterWorker> logger)
         {
+            _poller = poller;
+            _tweetPublisher = tweetPublisher;
             _logger = logger;
-            _credentials = new InMemoryCredentialStore{
-                ConsumerKey = config["TWITTER_API_KEY"],
-                ConsumerSecret = config["TWITTER_API_SECRET"]
-            };
         }
-
-        public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-           var auth = new ApplicationOnlyAuthorizer { 
-               CredentialStore = _credentials
-           };
-           await auth.AuthorizeAsync();
-           _twitterContext = new TwitterContext(auth);
-        }        
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogDebug($"GracePeriodManagerService is starting.");
+            await _tweetPublisher.RunAsync(stoppingToken);
+            await _poller.Poll(stoppingToken, RaiseTweetReceived);
+        }
 
-            stoppingToken.Register(() =>
-                _logger.LogDebug($" GracePeriod background task is stopping."));
-
-
-            var stream = _twitterContext.Streaming.Where(str => str.Type == StreamingType.Filter);
-            await stream.StartAsync(async strm => {
-                if(OnTweetReceived != null)
-                     OnTweetReceived(this, strm.Content);
-                if(stoppingToken.IsCancellationRequested)
-                    strm.CloseStream();
-            });
-
-            _logger.LogDebug($"GracePeriod background task is finished.");
+        private void RaiseTweetReceived(string tweetContent)
+        {
+            _logger.LogInformation("OnTweetRecevied");          
+            _tweetPublisher.PublishTweetEvent(tweetContent);
         }        
     }
 }

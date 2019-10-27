@@ -1,0 +1,34 @@
+version: '3'
+services:
+  tweetredis:
+    image: redis
+    ports: 
+      - "6379:6379"
+  twitter-poller:
+    build: twitter-poller
+    environment:
+      - POLLER_USE_DUMMY=true
+      - REDIS_CONNSTR=tweetredis
+      - REDIS_TWEET_CHANNEL=tweets
+      - TWITTER_API_KEY
+      - TWITTER_API_SECRET
+    depends_on: 
+      - tweetredis
+  backend-stream:
+    build: backend-stream
+    ports:
+      - "5000:80"
+    environment:
+      - REDIS_CONNSTR=tweetredis
+      - REDIS_TWEET_CHANNEL=tweets
+      - CORS_ALLOWED=http://localhost:3000
+    depends_on: 
+      - twitter-poller
+  web-client:
+    build: web-client
+    ports:
+      - "3000:3000"
+    environment:
+      - TWEET_HUB_URL=http://localhost:5000
+    depends_on:
+      - backend-stream
