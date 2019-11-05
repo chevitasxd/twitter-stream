@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mbsa-playground
+  labels: 
+    user: martin.baklid
+    user: sebastian.aguado 

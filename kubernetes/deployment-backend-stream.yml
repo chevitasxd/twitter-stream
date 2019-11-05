@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-backend-stream
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: backend-stream
+  template:
+    metadata:
+      labels:
+        application: backend-stream
+    spec:
+      containers:
+      - name: backend-stream
+        image: itetechmadacr.azurecr.io/mbsaback:0.1
+        ports:
+        - containerPort: 80
+        env:
+        - name: REDIS_CONNSTR
+          value: tweetredis
+        - name: REDIS_TWEET_CHANNEL
+          value: tweets
+        - name: CORS_ALLOWED
+          value: http://localhost:3000

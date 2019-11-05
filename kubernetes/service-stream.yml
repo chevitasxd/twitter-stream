@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-stream
+  labels:
+    application: backend-stream
+spec:
+  selector:
+    application: backend-stream
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 80

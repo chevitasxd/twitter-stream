@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1 
+kind: Ingress
+metadata:
+  name: mbsa-ingress
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing 
+spec:
+  rules:
+    - host: mbsa-playground.e74c370edf4345d39982.westeurope.aksapp.io
+      http:
+        paths:
+          - path: /stream
+            backend:
+              serviceName: backend-stream
+              servicePort: 5000
+          - path: /front
+            backend:
+              serviceName: frontend
+              servicePort: 3000
