@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: frontend
+  template:
+    metadata:
+      labels:
+        application: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: itetechmadacr.azurecr.io/mbsafront:0.1
+        ports:
+        - containerPort: 3000
+        env:
+        - name: TWEET_HUB_URL
+          value: stream 
